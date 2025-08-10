@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Memory Game - Simon Says</title>
+<style>
+  body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: white;
+  }
+  h1 {
+    margin-top: 20px;
+  }
+  #game-board {
+    display: grid;
+    grid-template-columns: repeat(2, 150px);
+    grid-gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  .btn {
+    width: 150px;
+    height: 150px;
+    border-radius: 15px;
+    cursor: pointer;
+    opacity: 0.8;
+    border: none;
+  }
+  .green { background: green; }
+  .red { background: red; }
+  .yellow { background: gold; }
+  .blue { background: blue; }
+  .active { opacity: 1; box-shadow: 0 0 20px white; }
+  #start-btn {
+    margin-top: 30px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>Memory Game - Simon Says</h1>
+<p id="level-title">Press Start to Play</p>
+<div id="game-board">
+  <button class="btn green" id="green"></button>
+  <button class="btn red" id="red"></button>
+  <button class="btn yellow" id="yellow"></button>
+  <button class="btn blue" id="blue"></button>
+</div>
+<button id="start-btn">Start Game</button>
+
+<script>
+  const buttonColors = ["green", "red", "yellow", "blue"];
+  let gamePattern = [];
+  let userClickedPattern = [];
+  let started = false;
+  let level = 0;
+
+  document.getElementById("start-btn").addEventListener("click", startGame);
+
+  function startGame() {
+    if (!started) {
+      level = 0;
+      gamePattern = [];
+      started = true;
+      nextSequence();
+    }
+  }
+
+  function nextSequence() {
+    userClickedPattern = [];
+    level++;
+    document.getElementById("level-title").textContent = "Level " + level;
+
+    const randomChosenColor = buttonColors[Math.floor(Math.random() * 4)];
+    gamePattern.push(randomChosenColor);
+
+    let i = 0;
+    const interval = setInterval(() => {
+      playSound(gamePattern[i]);
+      animatePress(gamePattern[i]);
+      i++;
+      if (i >= gamePattern.length) clearInterval(interval);
+    }, 600);
+  }
+
+  buttonColors.forEach(color => {
+    document.getElementById(color).addEventListener("click", function() {
+      if (!started) return;
+      const userChosenColor = this.id;
+      userClickedPattern.push(userChosenColor);
+      playSound(userChosenColor);
+      animatePress(userChosenColor);
+      checkAnswer(userClickedPattern.length - 1);
+    });
+  });
+
+  function checkAnswer(currentLevel) {
+    if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+      if (userClickedPattern.length === gamePattern.length) {
+        setTimeout(() => nextSequence(), 1000);
+      }
+    } else {
+      playSound("wrong");
+      document.body.style.backgroundColor = "red";
+      setTimeout(() => document.body.style.backgroundColor = "#111", 200);
+      document.getElementById("level-title").textContent = "Game Over! Press Start to Play Again";
+      started = false;
+    }
+  }
+
+  function playSound(name) {
+    let audio;
+    if (name === "wrong") {
+      audio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+    } else {
+      audio = new Audio(`https://s3.amazonaws.com/freecodecamp/simonSound${buttonColors.indexOf(name)+1}.mp3`);
+    }
+    audio.play();
+  }
+
+  function animatePress(color) {
+    const button = document.getElementById(color);
+    button.classList.add("active");
+    setTimeout(() => button.classList.remove("active"), 200);
+  }
+</script>
+
+</body>
+</html>
